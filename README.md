@@ -6,7 +6,7 @@ My solutions to Advent of Code 2025.
 
 | Day | Part 1 | Part 2 |
 | :---: | :------: | :------: |
-| 01 | <ul><li>[X] </li></ul> | <ul><li>[ ] </li></ul> |
+| 01 | <ul><li>[X] </li></ul> | <ul><li>[X] </li></ul> |
 | 02 | <ul><li>[ ] </li></ul> | <ul><li>[ ] </li></ul> |
 | 03 | <ul><li>[ ] </li></ul> | <ul><li>[ ] </li></ul> |
 | 04 | <ul><li>[ ] </li></ul> | <ul><li>[ ] </li></ul> |
