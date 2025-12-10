@@ -32,7 +32,19 @@ def p2(input: list[str]) -> int:
                 paths.put(new_path)
     return path_count
 
+
+def num_paths(input: list[str], row: int, col: int, computed: list[list[int]]) -> int:
+    comp = computed[row][col]
+    if comp != 0:
+        return comp
+    if row == len(input)-1:
+        computed[row][col] = 1
+        return 1
+    if input[row][col] == "^":
+        return num_paths(input, row+1, col-1, computed) + num_paths(input, row+1, col+1, computed)
+    return num_paths(input, row+1, col, computed)
+
 if __name__ == "__main__":
-    input = parse_input("solutions/day07/input.txt")
+    input = parse_input("solutions/day07/test.txt")
     print(f"[P1] The number of splits is: {p1(input)}")
     print(f"[P2] The number of timelines is: {p2(input)}")
