@@ -1,5 +1,6 @@
 from typing import TypedDict
 from queue import PriorityQueue
+from ortools.sat.python import cp_model
 
 class Machine(TypedDict):
     buttons: set[tuple[int, ...]]
@@ -8,9 +9,9 @@ class Machine(TypedDict):
 
 def parse_input(manual: str) -> list[Machine]:
     machines: list[Machine] = []
-    for specs in {spec for spec in open(manual)}:
+    for specs in {spec.rstrip() for spec in open(manual)}:
         machine: Machine = {"lights": set(), "buttons": set(), "joltages": []}
-        for part in specs.rstrip().split(' '):
+        for part in specs.split(' '):
             match part[0]:
                 case '[':
                     machine["lights"] = light_idcs(part[1:-1])
@@ -19,7 +20,7 @@ def parse_input(manual: str) -> list[Machine]:
                 case '{':
                     machine["joltages"] = joltage_reqs(part[1:-1])
                 case _:
-                    pass
+                    raise RuntimeError(f"Unexpected part in input: {part}")
         machines.append(machine)
     return machines
 
@@ -54,25 +55,21 @@ def p1(input: list[Machine]) -> int:
                     pq.put((prio+1, new_state))
     return presses
 
-def p2(input: list[Machine]):
+def p2(input: list[Machine]) -> int:
     presses = 0
-    for i, machine in enumerate(input):
-        print(f"Handling machine {i}")
+    for machine in input:
         goal = machine["joltages"]
-        seen_states: set[tuple[int,...]] = set()
-        pq: PriorityQueue[tuple[int, list[int]]] = PriorityQueue()
-        pq.put((0, [0]*len(goal)))
-        while not pq.empty():
-            prio, state = pq.get()
-            print(state)
-            if state == goal:
-                presses += prio
-                break
-            for button in machine["buttons"]:
-                new_state = [v+1 if i in button else v for i,v in enumerate(state)]
-                if not tuple(new_state) in seen_states and not any([nv > v for nv, v in zip(new_state, goal)]):
-                    seen_states.add(tuple(new_state))
-                    pq.put((prio+1, new_state))
+
+        model = cp_model.CpModel()
+        variables = [model.NewIntVar(0, sum(goal), f"button_{j}") for j in range(len(machine["buttons"]))]
+        for idx in range(len(goal)):
+            relevant_buttons = [variables[bi] for bi, b in enumerate(list(machine["buttons"])) if idx in b]
+            model.Add(sum(relevant_buttons) == goal[idx])
+        model.Minimize(sum(variables))
+
+        solver = cp_model.CpSolver()
+        solver.Solve(model)
+        presses += int(solver.ObjectiveValue())
     return presses
 
 if __name__ == "__main__":
